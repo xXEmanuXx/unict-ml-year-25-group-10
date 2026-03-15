@@ -60,11 +60,11 @@ Ogni gruppo deve partire dal **template** seguendo questi passaggi:
 3. **Aggiornare il README**
 
 ## Progetto
-- Gruppo: xx
-- Nome del progetto: ...
-- Descrizione breve del progetto: ...
+- Gruppo: 10
+- Nome del progetto: Predizione della sopravvivenza nei disastri marittimi storici
+- Descrizione breve del progetto: Analisi dei dati dei passeggeri di eventi navali storici, come il Titanic, l'Estonia e il Lusitania, tramite modelli predittivi di machine learning per stimare la probabilità di sopravvivenza in base a caratteristiche individuali e condizioni del viaggio.
 
 ## Membri del gruppo
-- Studente 1
-- Studente 2
-- Studente 3
+- Emanuele Di Benedetto
+- Davide Greco
+- Samuele Moscuzza

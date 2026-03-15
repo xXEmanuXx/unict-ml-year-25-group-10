@@ -39,7 +39,6 @@ Scrivere qui un breve abstract (max 150-200 parole) che sintetizzi:
 - **Preprocessing effettuato**
 - **Statistiche**: includere tabelle o grafici riassuntivi dei dati, metodo di split (train/val/test)
 
-
 ## Metodologia
 In questa sezione il gruppo descrive tutte le metodologie adottate nel progetto. Possibili punti da trattare:
 - **Metodi utilizzati**: modelli di Machine Learning
@@ -71,4 +70,3 @@ In questa sezione viene descritta come è stata sviluppata la demo.
 ## Riferimenti
 - Paper scientifici, articoli, librerie e tool utilizzati
 - Dataset e risorse online
-
