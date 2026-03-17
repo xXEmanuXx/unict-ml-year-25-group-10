@@ -202,4 +202,46 @@ Un'altra caratteristica rilevante per l'analisi dei passeggeri è rappresentata 
 Nei due grafici sono considerati solamente i valori di età effettivamente disponibili nel dataset, escludendo quelli inseriti durante la fase di preprocessing. Questa scelta è stata adottata per evitare che i valori inseriti artificialmente potessero alterare la distribuzione reale dei dati. L'analisi dell’età permette inoltre di osservare come la popolazione dei passeggeri sia distribuita principalmente nelle fasce di età adulte, con una presenza minore di bambini e anziani.
 
 ## Metodologia
+Per affrontare il problema della predizione della sopravvivenza dei passeggeri, sono stati progettati, addestrati e confrontati quattro modelli di classificazione: regressione logistica, Multi-Layer Perceptron (MLP), classificatore softmax e Support Vector Machine (SVM).
+In questa sezione vengono descritte le architteture dei modelli, le funzioni di perdita adottate, le principali scelte progettuali e le metriche di riferimento utilizzate per la valutazione delle prestazioni dei modelli.
+
+Il regressore logistico è un modello di classificazione binaria che, date in input le feature, restituisce la probabilità di appartenenza alla classe positiva (sopravvissuto). Dall'analisi del dataset (`datasets_stats.ipynb`) è emerso uno sbilanciamento delle classi: circa due terzi dei passeggeri apparteneva alla classe `0` (non sopravvissuto) e un terzo alla classe `1` (sopravvissuto).
+
+Per gestire questo squilibrio, sono stati addestrati due modelli distinti utilizzando due funzioni di loss: BCELoss e BCEWithLogitsLoss. La seconda integra internamente la funzione sigmoide, garantendo maggiore stabilità numerica, e permette inoltre di applicare il parametro `pos_weight` per penalizzare maggiormente gli errori sulla classe minoritaria, migliorando così il recall.
+
+L'architettura adottata consiste in un singolo strato lineare con 5 input features e 1 output. Nel primo modello viene applicata la funzione di attivazione sigmoide all'output, mentre nel secondo vengono usati i logits direttamente per la loss.
+
+Al termine dell’addestramento, i modelli sono stati valutati tramite metriche multiple
+- Accuracy: indica la percentuale di classificazioni corrette.
+- Precision: rappresenta la proporzione di veri positivi tra tutti i positivi predetti.
+- Recall: misura la proporzione di veri positivi tra tutti i positivi reali.
+- F1-score: costituisce la media armonica tra precision e recall e fornisce una valutazione bilanciata delle prestazioni del modello, soprattutto in presenza di classi sbilanciate.
+
+Il Multi-layer Perceptron (MLP) è una rete neurale in grado di catturare relazioni non lineari tra le feature tramite l'utilizzo di più strati nascosti ed è utilizzato per effettuare classificazione multi-classe.
+
+Sono stati addestrati due modelli distinti: un MLP base a due strati e un MLP profondo con diversi strati nascosti. L'architettura dei due modelli prevede per l'MLP base un primo strato lineare da 5 neuroi di input a 3 intermedi e nel secondo strato da 3 a 2 neuroni di output. Per l'MLP profondo è invece utilizzata un'architettura a strati 5 -> 16 -> 8 -> 4 -> 2.
+Entrambi i modelli utilizzano la ReLU come funzione di attivazione tranne nell'ultimo strato poiché la funzione di loss adottata è la `CrossEntropyLoss` ovvero una generalizzazione multiclasse della `BCELoss` e richiede logits come input.
+
+Il classificatore softmax rappresenta una versione più semplice dell'MLP per la classificazione multi-classe, essendo costituito da un solo strato lineare che mappa le 5 feature di input a 2 in output. Anche in questo caso è stata utilizzata la funzione di perdita `CrossEntropyLoss`; di conseguenza, non è stata applicata esplicitamente la funzione softmax nel modello, poiché essa è già inclusa nella funzione di perdita.
+
+L'ultimo modello considerato è il Support Vector Machine (SVM), un modello di classificazione binaria che individua un iperpiano in grado di separare i dati massimizzando il margine tra le due classi. I vettori di supporto sono i punti più vicini a tale margine e contribuiscono in modo determinante alla definizione della frontiera decisionale.
+
+L'equazione dell'iperpiano è $w * x + b = 0$, dove $w$ il vettore dei pesi, $x$ il vettore delle feature in input e $b$ il termine di bias. Coerentemente con questa formulazione, il modello è stato implementato come uno strato lineare con 5 feature in input e 2 in output.
+
+Per poter addestrare correttamente l'SVM, le etichette sono state trasformate da `0` a `-1` per la classe negativa, mantenendo `1` per la classe positiva. La funzione di perdita utilizzata è la hinge loss:
+
+$$
+L = \max(0, 1 - y * f(x))
+$$
+
+dove $y$ è l'etichetta e $f(x)$ il valore predetto dal modello. Se il punto è classficato correttamente con un margine sufficiente, la loss è nulla; se si trova all'interno del margine, la penalizzazione è ridotta; mentre in caso di classificazione errata la loss aumenta significativamente.
+
+Questo modello è stato inoltre confrontato con l'implementazione SVM fornita dalla libreria `scikit-learn`, utilizzando l'accuracy nel test set come metrica di riferimento.
+
+Tutti I modelli trattati sono stati addestrati utilizzando l'ottimizzatore SGD (Stochastic Gradient Descent).
+Gli iperparametri scelti sono il learning rate pari a `0.05`, un `momentum` pari a `0.9`, utile per accelerare la convergenza sfruttando l'informazione dei gradienti passati, e una regolarizzazione L2 ottenuta tramite il parametro `weight_decay` impostato a `0.001`.
+
+I dati sono stati elaborati con la classe `DataLoader`, utilizzando mini-batch da 32 elementi per il training set e da 64 per il test set. Durante l'addestramento, i dati di training sono stati mescolati ad ogni epoca tramite il flag `shuffle = true` per migliorare la generalizzazione del modello.
+
+L'addestramento è stato condotto per 300 epoche seguendo un ciclo composto da una fase di training e una di validazione. In ciascuna epoca, il modello viene aggiornato sul training set calcolando la loss e l'accuracy, mentre nella fase di validazione vengono calcolate le stesse metriche sul test set senza aggiornare i parametri, al fine di monitorare le prestazioni su dati non visti.
 
