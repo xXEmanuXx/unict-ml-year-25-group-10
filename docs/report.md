@@ -102,7 +102,7 @@ In particolare, i dataset utilizzati sono disponibili ai seguenti link:
 
 Questi datasets contengono informazioni sui passeggeri coinvolti nei rispettivi incidenti navali e sono stati utilizzati come base per la costruzione del dataset finale utilizzato nel progetto.
 
-L'acquisizione del dataset finale utilizzato per l'addestramento dei modelli è stata effettuata tramite i notebooks `merge_ship_datasets.ipynb` e `datasets_stats.ipynb`.
+L'acquisizione del dataset finale utilizzato per l'addestramento dei modelli è stata effettuata tramite i notebooks `merge_datasets.ipynb` e `datasets_stats.ipynb`.
 
 Il primo notebook descrive il processo di acquisizione dei dati dai tre datasets originali, nonchè le operazioni di uniformazione e integrazione necessarie per ottenere un unico dataset utilizzabile per l'addestramento dei modelli di apprendimento automatico.
 Il secondo notebook presenta invece un'analisi esplorativa dei datasets, finalizzata ad individuare le variabili più rilevanti per il problema affrontato e a produrre diversi grafici riassuntivi delle caratteristiche dei dati.
@@ -211,11 +211,9 @@ Per gestire questo squilibrio, sono stati addestrati due modelli distinti utiliz
 
 L'architettura adottata consiste in un singolo strato lineare con 5 input features e 1 output. Nel primo modello viene applicata la funzione di attivazione sigmoide all'output, mentre nel secondo vengono usati i logits direttamente per la loss.
 
-Al termine dell’addestramento, i modelli sono stati valutati tramite metriche multiple
-- Accuracy: indica la percentuale di classificazioni corrette.
-- Precision: rappresenta la proporzione di veri positivi tra tutti i positivi predetti.
-- Recall: misura la proporzione di veri positivi tra tutti i positivi reali.
-- F1-score: costituisce la media armonica tra precision e recall e fornisce una valutazione bilanciata delle prestazioni del modello, soprattutto in presenza di classi sbilanciate.
+Questo sbilanciamento nelle etichette del dataset è stato anche affrontato anche nei modelli di Multi-Layer Perceptron, classificatore softmax e Support Vector Machine. Per mitigare il problema, in ciascun modello è stato applicato il parametro `weight` nella funzione di perdita.
+
+I pesi sono stati assegnati in maniera tale che la classe positiva, meno rappresentata, ricevesse un peso maggiore (`2.0`), mentre la classe negativa riceve un peso unitario (`1.0`). In questo modo, l'errore commesso nel classificare un esempio di classe positiva contribuisce doppiamente alla loss rispetto ad un esempio di classe negativa, spingendo il modello a riconoscere meglio la classe rara e a non predire esclusivamente la classe negativa per minimizzare la loss complessiva.
 
 Il Multi-layer Perceptron (MLP) è una rete neurale in grado di catturare relazioni non lineari tra le feature tramite l'utilizzo di più strati nascosti ed è utilizzato per effettuare classificazione multi-classe.
 
@@ -236,12 +234,171 @@ $$
 
 dove $y$ è l'etichetta e $f(x)$ il valore predetto dal modello. Se il punto è classficato correttamente con un margine sufficiente, la loss è nulla; se si trova all'interno del margine, la penalizzazione è ridotta; mentre in caso di classificazione errata la loss aumenta significativamente.
 
-Questo modello è stato inoltre confrontato con l'implementazione SVM fornita dalla libreria `scikit-learn`, utilizzando l'accuracy nel test set come metrica di riferimento.
+Questo modello è stato inoltre confrontato con l'implementazione SVM fornita dalla libreria `scikit-learn`.
 
 Tutti I modelli trattati sono stati addestrati utilizzando l'ottimizzatore SGD (Stochastic Gradient Descent).
 Gli iperparametri scelti sono il learning rate pari a `0.05`, un `momentum` pari a `0.9`, utile per accelerare la convergenza sfruttando l'informazione dei gradienti passati, e una regolarizzazione L2 ottenuta tramite il parametro `weight_decay` impostato a `0.001`.
 
 I dati sono stati elaborati con la classe `DataLoader`, utilizzando mini-batch da 32 elementi per il training set e da 64 per il test set. Durante l'addestramento, i dati di training sono stati mescolati ad ogni epoca tramite il flag `shuffle = true` per migliorare la generalizzazione del modello.
 
-L'addestramento è stato condotto per 300 epoche seguendo un ciclo composto da una fase di training e una di validazione. In ciascuna epoca, il modello viene aggiornato sul training set calcolando la loss e l'accuracy, mentre nella fase di validazione vengono calcolate le stesse metriche sul test set senza aggiornare i parametri, al fine di monitorare le prestazioni su dati non visti.
+## Esperimenti
+In questa sezione vengono presentate le procedure di addestramento e validazione adottate, insieme ad un confronto tra i diversi modelli e ad un'analisi dei risultati ottenuti. L'obiettivo degli esperimenti è valutare le capacità dei modelli di generalizzare sui dati di test, con particolare attenzione alla classe positiva, meno rappresentata dal dataset.
 
+I dati sono stati suddivisi in training e test set, successivamente normalizzati e organizzati in mini-batch, come descritto nelle sezioni precedenti. Tutti i modelli sono stati addestrati per 300 epoche, durante le quali, per ogni epoca, sono stati eseguiti due cicli principali:
+- Training: per ogni batch del training set vengono calcolate la loss e l'accuracy, aggiornando i parametri del modello tramite ottimizzazione. Al termine di ciascuna epoca, sono stati calcolati i valori medi di loss e accuracy sull'intero training set.
+- Validazione: senza aggiornare i parametri del modello, vengono calcolate la loss e l'accuracy su ogni batch nel test set, e successivamentei valori medi complessivi.
+
+Durante l'addestramento, i valori di loss e accuracy sono stati monitorati tramite TensorBoard, consentendo di analizzare l'andamento del processo di apprendimento.
+
+Al termine dell’addestramento, i modelli sono stati valutati tramite diverse metriche:
+- Accuracy: indica la percentuale di classificazioni corrette sul totale degli esempi.
+- Precision: rappresenta la proporzione di esempi classificati correttamente come positivi che risultano effettivamente positivi.
+- Recall: misura la proporzione di esempi positivi correttamente identifcati rispetto al totale dei positivi reali.
+- F1-score: costituisce la media armonica tra precision e recall e fornisce una valutazione bilanciata delle prestazioni del modello.
+
+Inoltre, per i modelli direttamente confrontabili tra loro, come le due versioni della regressione logistica e i modelli Multi-Layer Perceptron, è stato riportato anche il valore della loss sul test set, al fine di valutare le prestazioni in termini di errore medio.
+
+Nel contesto considerato, caratterizzato da uno sbilanciamento tra le classi, metriche come recall ed F1-score risultano più informative rispetto alla sola accuracy, poiché permettono di valutare in modo più accurato le prestazioni sulla classe positiva.
+
+Per i modelli di regressione logistica sono state calcolate tutte le metriche sopra descritte. 
+
+<p align="center">
+    <table>
+        <thead>
+            <tr>
+                <th>Modello</th>
+                <th>Loss</th>
+                <th>Accuracy</th>
+                <th>Precision</th>
+                <th>Recall</th>
+                <th>F1-Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Logistic</td>
+                <td>0.6155</td>
+                <td>66.58%</td>
+                <td>37.93%</td>
+                <td>4.40%</td>
+                <td>7.89%</td>
+            </tr>
+            <tr>
+                <td>LogisticLogits</td>
+                <td>0.8940</td>
+                <td>54.62%</td>
+                <td>39.45%</td>
+                <td>74.00%</td>
+                <td>51.46%</td>
+            </tr>
+        </tbody>
+    </table>
+    <i>Tabella 2: Metriche di valutazione della regressione logistica</i>
+</p>
+
+Il confronto, riportato in **Tabella 2**, evidenzia come il modello base, pur ottenendo un'accuracy più elevata, presenti un recall estremamente basso, indicando una forte tendenza a classificare gli esempi come appartenenti alla classe negativa.
+
+L'introduzione del parametro `pos_weight` nella funzione di perdita `BCEWithLogitsLoss` consente di bilanciare l'importanza delle classi, portando ad un miglioramento significativo del recall e dell'F1-score. Questo comportamento evidenzia una maggiore capacità del modello di identificare la classe positiva, a discapito di una riduzione dell'accuracy complessiva.
+
+Nei modelli Multi-layer Perceptron, il bilanciamento delle classi è stato ottenuto tramite il parametro `weight` nella funzione di perdita `CrossEntropyLoss`.
+
+<p align="center">
+    <table>
+        <thead>
+            <tr>
+                <th>Modello</th>
+                <th>Loss</th>
+                <th>Accuracy</th>
+                <th>Precision</th>
+                <th>Recall</th>
+                <th>F1-Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>MLP_2Layer</td>
+                <td>0.6285</td>
+                <td>60.73%</td>
+                <td>43.72%</td>
+                <td>72.40%</td>
+                <td>54.52%</td>
+            </tr>
+            <tr>
+                <td>DeepMLP</td>
+                <td>0.5923</td>
+                <td>62.29%</td>
+                <td>45.35%</td>
+                <td>78.00%</td>
+                <td>57.35%</td>
+            </tr>
+        </tbody>
+    </table>
+    <i>Tabella 3: Metriche di valutazione del Multi-Layer Perceptron</i>
+</p>
+
+I risultati mostrano che il modello più profondo, come riportato in **Tabella 3**, ottiene prestazioni migliori rispetto a quello base, con una loss inferiore e valori più elevati di accuracy, recall ed F1-score. Questo suggerisce una maggiore capacità di apprendere relazioni non lineari e una migliore generalizzazione sui dati di test.
+
+Il classificatore softmax, pur utilizzando lo stesso schema di bilanciamento, mostra prestazioni intermedie, come evidenziato in **Tabella 4**, con valori inferiori rispetto agli MLP ma comunque significativamente migliori rispetto ai modelli non bilanciati.
+
+<p align="center">
+    <table>
+        <thead>
+            <tr>
+                <th>Modello</th>
+                <th>Accuracy</th>
+                <th>Precision</th>
+                <th>Recall</th>
+                <th>F1-Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Softmax</td>
+                <td>59.69%</td>
+                <td>41.48%</td>
+                <td>58.40%</td>
+                <td>48.50%</td>
+            </tr>
+        </tbody>
+    </table>
+    <i>Tabella 4: Metriche di valutazione del classificatore Softmax</i>
+</p>
+
+Per quanto riguarda l'SVM implementato manualmente, il bilanciamento è stato introdotto direttamente nella funzione di perdita hinge loss tramite pesi sulle classi.
+
+<p align="center">
+    <table>
+        <thead>
+            <tr>
+                <th>Modello</th>
+                <th>Accuracy</th>
+                <th>Precision</th>
+                <th>Recall</th>
+                <th>F1-Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>LinearSVM</td>
+                <td>59.69%</td>
+                <td>38.97%</td>
+                <td>42.40%</td>
+                <td>40.61%</td>
+            </tr>
+            <tr>
+                <td>SVM sklearn</td>
+                <td>67.49%</td>
+                <td>0.00%</td>
+                <td>0.00%</td>
+                <td>0.00%</td>
+            </tr>
+        </tbody>
+    </table>
+    <i>Tabella 5: Metriche di valutazione del Support Vector Machine</i>
+</p>
+
+Questo approccio consente al modello di riconoscere una porzione significativa della classe positiva, sebbene con prestazioni inferiori rispetto ai modelli neurali.
+
+Infine, il modello SVM della libreria `scikit-learn`, privo di bilanciamento delle classi, mostra un'accuracy elevata ma un recall nullo, indicando che il modello tende a predire esclusivamente la classe negativa. Questo comportamento lo rende inadeguato per il problema considerato.
+
+Nel complesso, il confronto tra i modelli evidenzia come l'introduzione di tecniche di bilanciamento delle classi sia fondamentale per ottenere prestazioni significative su dataset sbilanciati. I risultano mostrano inoltre che modelli più complessi, come il DeepMLP, riescono ad ottenere il miglior compromesso tra capacità di generalizzazione e identificazione della classe positiva.
