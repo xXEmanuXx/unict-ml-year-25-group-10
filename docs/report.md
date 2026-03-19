@@ -248,8 +248,6 @@ I dati sono stati suddivisi in training e test set, successivamente normalizzati
 - Training: per ogni batch del training set vengono calcolate la loss e l'accuracy, aggiornando i parametri del modello tramite ottimizzazione. Al termine di ciascuna epoca, sono stati calcolati i valori medi di loss e accuracy sull'intero training set.
 - Validazione: senza aggiornare i parametri del modello, vengono calcolate la loss e l'accuracy su ogni batch nel test set, e successivamentei valori medi complessivi.
 
-Durante l'addestramento, i valori di loss e accuracy sono stati monitorati tramite TensorBoard, consentendo di analizzare l'andamento del processo di apprendimento.
-
 Al termine dell’addestramento, i modelli sono stati valutati tramite diverse metriche:
 - Accuracy: indica la percentuale di classificazioni corrette sul totale degli esempi.
 - Precision: rappresenta la proporzione di esempi classificati correttamente come positivi che risultano effettivamente positivi.
@@ -299,6 +297,8 @@ Per i modelli di regressione logistica sono state calcolate tutte le metriche so
 Il confronto, riportato in **Tabella 2**, evidenzia come il modello base, pur ottenendo un'accuracy più elevata, presenti un recall estremamente basso, indicando una forte tendenza a classificare gli esempi come appartenenti alla classe negativa.
 
 L'introduzione del parametro `pos_weight` nella funzione di perdita `BCEWithLogitsLoss` consente di bilanciare l'importanza delle classi, portando ad un miglioramento significativo del recall e dell'F1-score. Questo comportamento evidenzia una maggiore capacità del modello di identificare la classe positiva, a discapito di una riduzione dell'accuracy complessiva.
+
+Si osserva inoltre un aumento del valore della loss, dovuto al fatto che gli errori di classificazione sulla classe positiva vengono penalizzati maggiormente. Di conseguenza, il valore medio della loss risulta più elevato, riflettendo l'enfasi posta sul corretto riconoscimento della classe meno rappresentata.
 
 Nei modelli Multi-layer Perceptron, il bilanciamento delle classi è stato ottenuto tramite il parametro `weight` nella funzione di perdita `CrossEntropyLoss`.
 
@@ -401,4 +401,59 @@ Questo approccio consente al modello di riconoscere una porzione significativa d
 
 Infine, il modello SVM della libreria `scikit-learn`, privo di bilanciamento delle classi, mostra un'accuracy elevata ma un recall nullo, indicando che il modello tende a predire esclusivamente la classe negativa. Questo comportamento lo rende inadeguato per il problema considerato.
 
-Nel complesso, il confronto tra i modelli evidenzia come l'introduzione di tecniche di bilanciamento delle classi sia fondamentale per ottenere prestazioni significative su dataset sbilanciati. I risultano mostrano inoltre che modelli più complessi, come il DeepMLP, riescono ad ottenere il miglior compromesso tra capacità di generalizzazione e identificazione della classe positiva.
+L'andamento dell'addestramento dei modelli è stato analizzato tramite i grafici di loss e accuracy ottenuti mediante TensorBoard.
+
+In particolare, sono stati considerati i seguenti grafici:
+- la loss in training e test al variare delle epoche;
+- l'accuracy in training e test al variare delle epoche.
+
+Dall'analisi dei grafici riportati in **Figura 5** e **Figura 5.1** (si rimanda all'appendice per la corrispondenza tra colori e modelli) si osserva che la maggior parte dei modelli presenta un andamento della loss relativamente stabile nel corso delle epoche, indicando una rapida convergenza. In alcuni casi, come nel modello DeepMLP, si nota una riduzione più marcata della loss nelle fasi iniziali dell'addrestramento, seguita da una progressiva stabilizzazione.
+
+<table align="center">
+    <tr>
+        <td align="center">
+            <img src="../media/loss_train_all.png" width="66%"><br>
+            <i>Figura 5: Grafico dell'andamento della loss in training di tutti i modelli.</i>
+        </td>
+        <td align="center">
+            <img src="../media/loss_test_all.png" width="66%"><br>
+            <i>Figura 5.1: Grafico dell'andamento della loss in test di tutti i modelli.</i>
+        </td>
+    </tr>
+</table>
+
+La stabilità osservata delle curve di loss suggerisce una convergenza rapida dei modelli; tuttavia, dalle metriche riportate nelle tabelle precedenti emerge come tale convergenza avvenga verso prestazioni complessivamente moderate. Questo comportamento può essere attribuito sia alla relativa semplicità delle architetture adottate, sia al numero limitato e alla natura delle feature utilizzate, che potrebbero non essere sufficienti a catturare tutte le relazioni necessarie per una predizione più accurata della sopravvivenza dei passeggeri.
+
+Il confronto tra i modelli evidenzia come l'utilizzo di tecniche di bilanciamento delle classi sia fondamentale in presenza di dataset sbilanciati. I modelli non bilanciati, come la regressione logistica base e l'SVM implementato tramite `scikit-learn`, tendono infatti a predire quasi esclusivamente la classe negativa, ottenendo valori di accuracy elevati ma recall molto basso o nullo. L'introduzione di pesi nella funzione di perdita consente invece di migliorare significativamente la capacità dei modelli di riconoscere la classe positiva, come dimostrato dall'aumento di recall e dell'F1-score.
+
+Tra tutti i modelli analizzati, il DeepMLP risulta il più efficace, in quanto raggiunge il miglior compromesso tra accuracy, recall ed F1-score, oltre a presentare una loss inferiore rispetto ad altri modelli neurali. Ciò indica una maggiore capacità di apprendere relazioni non lineari tra le feature e di generalizzare sui dati di test.
+
+<table align="center">
+    <tr>
+        <td align="center">
+            <img src="../media/loss_train_deep_mlp.png" width="66%"><br>
+            <i>Figura 6: Grafico dell'andamento della loss in training del modello DeepMLP.</i>
+        </td>
+        <td align="center">
+            <img src="../media/loss_test_deep_mlp.png" width="66%"><br>
+            <i>Figura 6.1: Grafico dell'andamento della loss in test del modello DeepMLP.</i>
+        </td>
+    </tr>
+</table>
+
+<table align="center">
+    <tr>
+        <td align="center">
+            <img src="../media/accuracy_train_deep_mlp.png" width="66%"><br>
+            <i>Figura 7: Grafico dell'andamento dell'accuracy in training del modello DeepMLP.</i>
+        </td>
+        <td align="center">
+            <img src="../media/accuracy_test_deep_mlp.png" width="66%"><br>
+            <i>Figura 7.1: Grafico dell'andamento dell'accuracy in test del modello DeepMLP.</i>
+        </td>
+    </tr>
+</table>
+
+Dal punto di vista dei grafici in **Figura 6** e **Figura 6.1**, il modello DeepMLP mostra un andamento stabile della loss, senza divergenze significative tra training e test. Questo comportamento suggerisce un buon equilibrio tra bias e varianza e non evidenzia fenomeni rilevanti di overfitting. 
+
+Per quanto riguarda l'accuracy, si osserva che nel test set essa assume inizialmente valori più elevati, per poi diminuire nelle prime epoche e stabilizzarsi successivamente. Questo andamento può essere dovuto al fatto che, nelle fasi iniziali, il modello non abbia ancora appreso una rappresentazione significativa dei dati e può ottenere prestazioni apparentemente elevate per effetto dello sbilanciamento delle classi, predicendo prevalentemente la classe negativa. Con il progredire dell'addestramento, il modello modifica il proprio comportamento, migliorando la capacità di identificare la classe positiva, con un conseguente aumento degli errori complessivi ma una classificazione più bilanciata tra le classi.
