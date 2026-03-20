@@ -457,3 +457,53 @@ Tra tutti i modelli analizzati, il DeepMLP risulta il più efficace, in quanto r
 Dal punto di vista dei grafici in **Figura 6** e **Figura 6.1**, il modello DeepMLP mostra un andamento stabile della loss, senza divergenze significative tra training e test. Questo comportamento suggerisce un buon equilibrio tra bias e varianza e non evidenzia fenomeni rilevanti di overfitting. 
 
 Per quanto riguarda l'accuracy, si osserva, nella **Figura 7.1**, che nel test set essa assume inizialmente valori più elevati, per poi diminuire nelle prime epoche e stabilizzarsi successivamente. Questo andamento può essere dovuto al fatto che, nelle fasi iniziali, il modello non abbia ancora appreso una rappresentazione significativa dei dati e può ottenere prestazioni apparentemente elevate per effetto dello sbilanciamento delle classi, predicendo prevalentemente la classe negativa. Con il progredire dell'addestramento, il modello modifica il proprio comportamento, migliorando la capacità di identificare la classe positiva, con un conseguente aumento degli errori complessivi ma una classificazione più bilanciata tra le classi.
+
+## Demo
+Per dimostrare il funzionamento del modello migliore di classificazione selezionato come migliore sulla base delle analisi precedenti, è stata sviluppata una semplice applicazione con interfaccia grafica che consente di eseguire inferenza sui dati in maniera interattiva.
+
+L'interfaccia grafica è stata implementata in Python utilizzando la libreria `Tkinter`, scelta per la sua leggerezza e per la facilità di integrazione con codice Python. La demo è stata progettata seguendo un'approccio modulare, suddividendo il codice in più files, ciascuno con una responsabilità ben definita, al fine di migliorare la leggibilità del codice.
+
+In particolare, l'organizzazione della demo è la seguente:
+- `data.py`: gestisce il caricamento del dataset, la suddivisione in training e test set e la normalizzazione delle features.
+- `model.py`: contiene la definizione del modello **DeepMLP**, la funzione di predizione, e la funzione per il caricamento dello stato del modello precedentemente addestrato.
+- `train.py`: implementa la procedura di addestramento del modello e il salvataggio dello stato di esso su file.
+- `controller.py`: rappresenta il livello di collegamento tra interfaccia grafica e il modello. Contiene le funzioni per il caricamento del dataset, la selezione degli esempi e l'esecuzione della predizione.
+- `gui.py`: definisce l'interfaccia grafica e i principali elementi visivi, quali label e pulsanti.
+- `main.py`: funge da punto di ingresso dell'applicazione, occupandosi di addestrare o caricare il modello e avviare la GUI.
+
+La demo, denominata "Passenger Survival Predictor", è mostrata in **Figura 8**. Essa consente di caricare il dataset in formato CSV contenente esempi relativi ai disastri navali storici, ottenuto tramite il processo di integrazione descritto nel notebook `merge_datasets.ipynb`. Il dataset viene utilizzato come sorgente di input, mentre l'inferenza viene eseguita su un singolo esempio alla volta.
+
+<p align="center">
+    <img src="../media/demo.png" width="25%">
+    <br>
+    <i>Figura 8: Interfaccia principale della demo.</i>
+</p>
+
+Come illustrato in **Figura 8**, l'interfaccia mette a disposizione diversi comandi che guidano l'utente nel flusso di utilizzo:
+- un pulsante per il caricamento del dataset (**Figura 8.1**);
+- un pulsante per la selezione casuale di un esempio dal dataset (**Figura 8.2**);
+- un pulsante per l'esecuzione della predizione (**Figura 8.3**);
+- un pulsante di reset, che consente di ripristinare lo stato iniziale dell'applicazione.
+
+<table align="center">
+    <tr>
+        <td align="center">
+            <img src="../media/load_csv.png" width="66%"><br>
+            <i>Figura 8.1: Caricamento del dataset in formato CSV nell'interfaccia della demo.</i>
+        </td>
+        <td align="center">
+            <img src="../media/load_random_row.png" width="66%"><br>
+            <i>Figura 8.2: Selezione casuale di un esempio dal dataset caricato.</i>
+        </td>
+        <td align="center">
+            <img src="../media/predict.png" width="66%"><br>
+            <i>Figura 8.3: Visualizzazione del risultato della predizione.</i>
+        </td>
+    </tr>
+</table>
+
+Una volta selezionato un campione, le relative features, quali sesso, età, indicatore di valore mancante per l'età, classe e appartenenza all'equipaggio, vengono mostrate tramite componenti di sola lettura. Questa scelta progettuale garantisce coerenza con il preprocessing adottato in fase di training ed evita modifiche manuali che potrebbero introdurre input non validi. Inoltre, viene visualizzata l'etichetta di ground truth, consentendo un confronto diretto tra il valore reale e la predizione del modello.
+
+La funzione di predizione utilizza il modello addestrato per stimare la probabilità di sopravvivenza del passeggero. Il risultato viene mostrato sotto forma di etichetta testuale, indicando sia la classe predetta (sopravvisuto / non sopravvisuto) sia la probabilità associata. In questo modo, l'utente può valutare non solo la decisione del modello, ma anche il grado di confidenza della predizione.
+
+Le immagini riportate in **Figura 8** e nelle relative sottofigure consentono di evidenziare il funzionamento complessivo della demo e l'integrazione tra modello e interfaccia grafica, mostrando chiaramente il flusso operativo: caricamento dei dati, selezione dell'input e generazione della predizione.

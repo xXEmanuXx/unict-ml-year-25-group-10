@@ -1,4 +1,5 @@
 import tkinter as tk
+
 import controller as ctrl
 
 def run_app(model, mean, std, device):

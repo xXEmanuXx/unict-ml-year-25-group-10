@@ -41,7 +41,7 @@ def predict(model, mean, std, device, features):
         logits = model(x.to(device))
         probs = torch.softmax(logits, dim=1)
 
-    prob = probs[0][1].item()
+    prob = probs[0][1].item() # probs = [prob_0, prob_1]
     pred = logits.argmax(dim=1).item()
 
     return pred, prob

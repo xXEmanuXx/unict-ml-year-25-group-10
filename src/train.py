@@ -3,7 +3,9 @@ from torch import nn
 from torch.optim import SGD
 import os
 
-def train_model(model, train_loader, device, save_path, lr=0.05, epochs=300):
+from sklearn.metrics import accuracy_score
+
+def train_model(model, train_loader, test_loader, device, save_path, lr=0.05, epochs=300):
     model = model.to(device)
 
     weights = torch.tensor([1.0, 2.0]).to(device)
@@ -12,6 +14,10 @@ def train_model(model, train_loader, device, save_path, lr=0.05, epochs=300):
 
     for epoch in range(epochs):
         model.train()
+
+        train_loss = 0.0
+        y_true = []
+        y_pred = []
         
         for X_batch, Y_batch in train_loader:
             X_batch = X_batch.to(device)
@@ -23,6 +29,38 @@ def train_model(model, train_loader, device, save_path, lr=0.05, epochs=300):
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
+
+            train_loss += loss.item() * X_batch.size(0)
+
+            preds = output.argmax(dim=1) 
+            y_true.extend(Y_batch.cpu().numpy())
+            y_pred.extend(preds.cpu().numpy())
+
+        train_loss /= len(train_loader.dataset)
+        train_acc = accuracy_score(y_true, y_pred)
+
+        model.eval()
+
+        test_loss = 0.0
+        y_true = []
+        y_pred = []
+
+        with torch.no_grad():
+            for X_batch, Y_batch in test_loader:
+                X_batch = X_batch.to(device)
+                Y_batch = Y_batch.to(device)
+
+                output = model(X_batch)
+
+                loss = criterion(output, Y_batch)
+                test_loss += loss.item() * X_batch.size(0)
+                
+                preds = output.argmax(dim=1)
+                y_true.extend(Y_batch.cpu().numpy())
+                y_pred.extend(preds.cpu().numpy())
+
+        test_loss /= len(test_loader.dataset)
+        test_acc = accuracy_score(y_true, y_pred)
 
         if epoch % 50 == 0:
             print(f"Epoch {epoch+1}/{epochs} complete")
