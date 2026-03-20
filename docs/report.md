@@ -14,15 +14,13 @@ L'obiettivo del progetto è sviluppare e valutare modelli predittivi per stimare
 
 normalizzando tutte le variabili e combinando i tre dataset originali in un unico dataset integrato.
 
-Sono stati addestrati quattro tipi di modelli principali:
-- Softmax
-- Multilayer Perceptron (MLP)
-- Regressore Logistico
-- Support Vector Machine (SVM)
+Sono stati confrontati diversi modelli di classificazione: regressione logistica, Multi-layer Perceptron (MLP), classificatore Softmax e Support Vector Machine (SVM), ponendo particolare attenzione al problema dello sbilanciamento delle classi.
 
-Per l'MLP sono state testate due architetture con uno e con più layer nascosti, mentre il regressore logistico è stato addestrato con due funzioni di loss: `BCELoss` e `BCEWithLogitsLoss`, applicando `pos_weight` per bilanciare le classi.
+I risultati mostrano come i modelli non bilanciati tendano a predire prevalentemente la classe maggioritaria, ottenendo valori di accuracy elevati ma recall molto basso. L'introduzione di pesi nelle funzioni di perdita ha migliorato significativamente la capacità di identificare la classe positiva.
 
-I risultati mostrando prestazioni simili tra i modelli, con accuratezza di test intorno al **71-72%** per MLP, Softmax e SVM. Il regressore logistico con `BCELoss` ha raggiunto un'accuratezza di **71.5%** ma con bassa recall, circa **0.15**, mentre la versione con `BCEWithLogitsLoss` ha ottenuto un'accuratezza inferiore con **59.7%** presentando però un bilanciamento leggermente migliore tra precision e recall. Questi risultati indicano che modelli più complessi non garantiscono necessariamente miglioramenti significativi rispetto a modelli lineari semplici per questo dataset. **DA MODIFICARE SE DOVESSERO CAMBIARE I RISULTATI**
+Tra i modelli analizzati, il **DeepMLP** ha ottenuto le migliori prestazioni complessive, con un buon equilibrio tra accuracy (~62%), recall (~78%) ed F1-score (~57%). Anche il modello MLP base ha mostrato risultati compatibili, mentre la regressione logistica con `BCEWithLogitsLoss` ha evidenziato un recall elevato (~74%) a fronte di una riduzione dell'accuracy.
+
+Questi risultati evidenziano l'importanza del bilanciamento delle classi e il ruolo delle architetture non lineari nella modellazioni del problema.
 
 ## Introduzione
 Il presente progetto nasce con l’obiettivo di applicare tecniche di Machine Learning all'analisi di dati storici relativi a incidenti navali, con lo scopo di stimare la probabilità di sopravvivenza dei passeggeri e dei membri dell'equipaggio coinvolti. Il problema affrontato rientra nell’ambito della classificazione binaria, poiché la variabile di interesse assume due soli valori possibili: sopravvissuto o non sopravvissuto. Attraverso l’analisi dei dati disponibili, il progetto mira a evidenziare come alcune caratteristiche individuali e di contesto possano influenzare in modo significativo l’esito finale di un evento catastrofico.
@@ -47,7 +45,7 @@ Il dataset utilizzato in questo progetto raccoglie informazioni relative ai pass
 L'obiettivo del dataset è fornire un insieme di caratteristiche dei passeggeri che possano essere utilizzate per addestrare un modello di classificazione binaria, in grado di prevedere la probabilità di sopravvivenza in base alle informazioni disponibili.
 
 Il dataset finale è stato ottenuto tramite la formattazione e la concatenazione di tre dataset distinti, uno per ciascun incidente navale.
-Complessivamente sono presenti **3841 record** e **6 features** di natura eterogenea, comprendenti sia dati numerici sia dati categorici descritti nella **Tabella 1**
+Complessivamente sono presenti **3841 record** e **6 features** di natura eterogenea, comprendenti sia dati numerici sia dati categorici descritti nella **Tabella 1**.
 
 <p align="center">
     <table align="center">
@@ -94,7 +92,8 @@ Complessivamente sono presenti **3841 record** e **6 features** di natura eterog
     <i>Tabella 1: Tipo e descrizione delle variabili presenti nel dataset finale</i>
 </p>
 
-I tre datasets relativi ai disastri navali sono stati raccolti da fonti pubbliche disponibili online sulla piattaforma [Kaggle](https://kaggle.com)
+I tre datasets relativi ai disastri navali sono stati raccolti da fonti pubbliche disponibili online sulla piattaforma [Kaggle](https://kaggle.com).
+
 In particolare, i dataset utilizzati sono disponibili ai seguenti link:
 - [RMS Titanic](https://www.kaggle.com/datasets/abdelrahmansaad10/titanic)
 - [MS Estonia](https://www.kaggle.com/datasets/christianlillelund/passenger-list-for-the-estonia-ferry-disaster)
@@ -102,7 +101,7 @@ In particolare, i dataset utilizzati sono disponibili ai seguenti link:
 
 Questi datasets contengono informazioni sui passeggeri coinvolti nei rispettivi incidenti navali e sono stati utilizzati come base per la costruzione del dataset finale utilizzato nel progetto.
 
-L'acquisizione del dataset finale utilizzato per l'addestramento dei modelli è stata effettuata tramite i notebooks `merge_datasets.ipynb` e `datasets_stats.ipynb`.
+L'acquisizione del dataset finale utilizzato per l'addestramento dei modelli è stata effettuata tramite i notebooks `merge_datasets.ipynb` e `dataset_stats.ipynb`.
 
 Il primo notebook descrive il processo di acquisizione dei dati dai tre datasets originali, nonchè le operazioni di uniformazione e integrazione necessarie per ottenere un unico dataset utilizzabile per l'addestramento dei modelli di apprendimento automatico.
 Il secondo notebook presenta invece un'analisi esplorativa dei datasets, finalizzata ad individuare le variabili più rilevanti per il problema affrontato e a produrre diversi grafici riassuntivi delle caratteristiche dei dati.
@@ -111,12 +110,7 @@ Lo strumento principale utilizzato per la manipolazione e l'analisi dei dati è 
 
 I dataset sono stati scaricati dalle rispettive fonti in formato CSV `.csv` e successivamente sono stati analizzati, poiché presentavano strutture e variabili differenti tra loro.
 
-Tra le variabili disponibili si è deciso di selezionare
-- sopravvissuto
-- età 
-- sesso
-- classe di viaggio 
-- ruolo a bordo
+Tra le variabili disponibili, lo stato di sopravvivenza è stato scelto come variabile target, mentre come features di input sono state selezionate l'età, il sesso, la classe di viaggio e il ruolo a bordo.
 
 Sono state invece escluse alcune variabili considerate meno rilevanti ai fini della previsione della sopravvivenza, tra cui il nome, costo del biglietto, nazionalità, porto d'imbarco, cittadinanza e stato civile.
 
@@ -137,7 +131,7 @@ X_{norm} = \frac{X - \mu}{\sigma}
 $$
 dove $\mu$ e $\sigma$ rappresentano rispettivamente la media e la deviazione standard di $X$.
 
-Tra i grafici riassuntivi dei dati calcolati nel notebook `datasets_stats.ipynb` è presente l'analisi della distribuzione della variabile target `survived`, che indica se un passeggero è sopravvissuto o meno all'incidente navale.
+Tra i grafici riassuntivi dei dati calcolati nel notebook `dataset_stats.ipynb` è presente l'analisi della distribuzione della variabile target `survived`, che indica se un passeggero è sopravvissuto o meno all'incidente navale.
 
 Il grafico in **Figura 1** mostra il numero di passeggeri sopravvisuti e non sopravvisuti presenti nel dataset complessivo.
 
@@ -154,7 +148,7 @@ Successivamente è stata analizzata la distribuzione del sesso dei passeggeri. C
 <p align="center">
     <img src="../media/sex_distribution.png" width="33%">
     <br>
-    <i>Figure 2: Distribuzione del sesso dei passeggeri</i>
+    <i>Figura 2: Distribuzione del sesso dei passeggeri</i>
 </p>
 
 Un'ulteriore analisi riguarda la distribuzione della sopravvivenza in funzione del sesso dei passeggeri, riportata in **Figura 3**.
@@ -205,7 +199,7 @@ Nei due grafici sono considerati solamente i valori di età effettivamente dispo
 Per affrontare il problema della predizione della sopravvivenza dei passeggeri, sono stati progettati, addestrati e confrontati quattro modelli di classificazione: regressione logistica, Multi-Layer Perceptron (MLP), classificatore softmax e Support Vector Machine (SVM).
 In questa sezione vengono descritte le architteture dei modelli, le funzioni di perdita adottate, le principali scelte progettuali e le metriche di riferimento utilizzate per la valutazione delle prestazioni dei modelli.
 
-Il regressore logistico è un modello di classificazione binaria che, date in input le feature, restituisce la probabilità di appartenenza alla classe positiva (sopravvissuto). Dall'analisi del dataset (`datasets_stats.ipynb`) è emerso uno sbilanciamento delle classi: circa due terzi dei passeggeri apparteneva alla classe `0` (non sopravvissuto) e un terzo alla classe `1` (sopravvissuto).
+Il regressore logistico è un modello di classificazione binaria che, date in input le feature, restituisce la probabilità di appartenenza alla classe positiva (sopravvissuto). Dall'analisi del dataset (`dataset_stats.ipynb`) è emerso uno sbilanciamento delle classi: circa due terzi dei passeggeri apparteneva alla classe `0` (non sopravvissuto) e un terzo alla classe `1` (sopravvissuto).
 
 Per gestire questo squilibrio, sono stati addestrati due modelli distinti utilizzando due funzioni di loss: BCELoss e BCEWithLogitsLoss. La seconda integra internamente la funzione sigmoide, garantendo maggiore stabilità numerica, e permette inoltre di applicare il parametro `pos_weight` per penalizzare maggiormente gli errori sulla classe minoritaria, migliorando così il recall.
 
@@ -333,7 +327,7 @@ Nei modelli Multi-layer Perceptron, il bilanciamento delle classi è stato otten
             </tr>
         </tbody>
     </table>
-    <i>Tabella 3: Metriche di valutazione del Multi-Layer Perceptron</i>
+    <i>Tabella 3: Metriche di valutazione dei Multi-Layer Perceptron</i>
 </p>
 
 I risultati mostrano che il modello più profondo, come riportato in **Tabella 3**, ottiene prestazioni migliori rispetto a quello base, con una loss inferiore e valori più elevati di accuracy, recall ed F1-score. Questo suggerisce una maggiore capacità di apprendere relazioni non lineari e una migliore generalizzazione sui dati di test.
@@ -394,7 +388,7 @@ Per quanto riguarda l'SVM implementato manualmente, il bilanciamento è stato in
             </tr>
         </tbody>
     </table>
-    <i>Tabella 5: Metriche di valutazione del Support Vector Machine</i>
+    <i>Tabella 5: Metriche di valutazione dei Support Vector Machine</i>
 </p>
 
 Questo approccio consente al modello di riconoscere una porzione significativa della classe positiva, sebbene con prestazioni inferiori rispetto ai modelli neurali.
@@ -413,11 +407,11 @@ Dall'analisi dei grafici riportati in **Figura 5** e **Figura 5.1** (si rimanda 
     <tr>
         <td align="center">
             <img src="../media/loss_train_all.png" width="66%"><br>
-            <i>Figura 5: Grafico dell'andamento della loss in training di tutti i modelli.</i>
+            <i>Figura 5: Grafico dell'andamento della loss in training di tutti i modelli</i>
         </td>
         <td align="center">
             <img src="../media/loss_test_all.png" width="66%"><br>
-            <i>Figura 5.1: Grafico dell'andamento della loss in test di tutti i modelli.</i>
+            <i>Figura 5.1: Grafico dell'andamento della loss in test di tutti i modelli</i>
         </td>
     </tr>
 </table>
@@ -432,11 +426,11 @@ Tra tutti i modelli analizzati, il DeepMLP risulta il più efficace, in quanto r
     <tr>
         <td align="center">
             <img src="../media/loss_train_deep_mlp.png" width="66%"><br>
-            <i>Figura 6: Grafico dell'andamento della loss in training del modello DeepMLP.</i>
+            <i>Figura 6: Grafico dell'andamento della loss in training del modello DeepMLP</i>
         </td>
         <td align="center">
             <img src="../media/loss_test_deep_mlp.png" width="66%"><br>
-            <i>Figura 6.1: Grafico dell'andamento della loss in test del modello DeepMLP.</i>
+            <i>Figura 6.1: Grafico dell'andamento della loss in test del modello DeepMLP</i>
         </td>
     </tr>
 </table>
@@ -445,11 +439,11 @@ Tra tutti i modelli analizzati, il DeepMLP risulta il più efficace, in quanto r
     <tr>
         <td align="center">
             <img src="../media/accuracy_train_deep_mlp.png" width="66%"><br>
-            <i>Figura 7: Grafico dell'andamento dell'accuracy in training del modello DeepMLP.</i>
+            <i>Figura 7: Grafico dell'andamento dell'accuracy in training del modello DeepMLP</i>
         </td>
         <td align="center">
             <img src="../media/accuracy_test_deep_mlp.png" width="66%"><br>
-            <i>Figura 7.1: Grafico dell'andamento dell'accuracy in test del modello DeepMLP.</i>
+            <i>Figura 7.1: Grafico dell'andamento dell'accuracy in test del modello DeepMLP</i>
         </td>
     </tr>
 </table>
@@ -476,7 +470,7 @@ La demo, denominata "Passenger Survival Predictor", è mostrata in **Figura 8**.
 <p align="center">
     <img src="../media/demo.png" width="25%">
     <br>
-    <i>Figura 8: Interfaccia principale della demo.</i>
+    <i>Figura 8: Interfaccia principale della demo</i>
 </p>
 
 Come illustrato in **Figura 8**, l'interfaccia mette a disposizione diversi comandi che guidano l'utente nel flusso di utilizzo:
@@ -489,15 +483,15 @@ Come illustrato in **Figura 8**, l'interfaccia mette a disposizione diversi coma
     <tr>
         <td align="center">
             <img src="../media/load_csv.png" width="66%"><br>
-            <i>Figura 8.1: Caricamento del dataset in formato CSV nell'interfaccia della demo.</i>
+            <i>Figura 8.1: Caricamento del dataset in formato CSV nell'interfaccia della demo</i>
         </td>
         <td align="center">
             <img src="../media/load_random_row.png" width="66%"><br>
-            <i>Figura 8.2: Selezione casuale di un esempio dal dataset caricato.</i>
+            <i>Figura 8.2: Selezione casuale di un esempio dal dataset caricato</i>
         </td>
         <td align="center">
             <img src="../media/predict.png" width="66%"><br>
-            <i>Figura 8.3: Visualizzazione del risultato della predizione.</i>
+            <i>Figura 8.3: Visualizzazione del risultato della predizione</i>
         </td>
     </tr>
 </table>
@@ -507,3 +501,63 @@ Una volta selezionato un campione, le relative features, quali sesso, età, indi
 La funzione di predizione utilizza il modello addestrato per stimare la probabilità di sopravvivenza del passeggero. Il risultato viene mostrato sotto forma di etichetta testuale, indicando sia la classe predetta (sopravvisuto / non sopravvisuto) sia la probabilità associata. In questo modo, l'utente può valutare non solo la decisione del modello, ma anche il grado di confidenza della predizione.
 
 Le immagini riportate in **Figura 8** e nelle relative sottofigure consentono di evidenziare il funzionamento complessivo della demo e l'integrazione tra modello e interfaccia grafica, mostrando chiaramente il flusso operativo: caricamento dei dati, selezione dell'input e generazione della predizione.
+
+## Conclusioni
+In questo lavoro sono stati sviluppati e confrontati diversi modelli di classificazione per la predizione della sopravvivenza dei passeggeri nei disastri navali storici, utilizzando un dataset integrato costruito a partire da tre dataset distinti.
+
+I risultati sperimentali evidenziano come le prestazioni dei modelli dipendano fortemente dalla gestione dello sbilanciamento delle classi. I modelli non bilanciati, come la regressione logistica base e l'SVM implementato tramite `scikit-learn`, tendono a privilegiare la classe maggioritaria, ottenendo valori di accuracy relativamente elevati ma recall estremamente basso o nullo.
+
+L'introduzione di tecniche di bilanciamento, come l'utilizzo di pesi nelle funzioni di perdita (`pos_weight` o `weight`), ha portato ad un miglioramento significativo nella capacità di riconoscere la classe positiva. In particolare:
+- la regressione logistica con `BCEWithLogitsLoss` ha migliorato drasticamente il recall, a discapito dell'accuracy;
+- i modelli MLP hanno mostrato le migliori prestazioni complessive;
+- il modello **DeepMLP** si è dimostrato il più efficace, raggiungendo il miglior compromesso tra accuracy, recall ed F1-score.
+
+Nel complesso, i risultati indicano che modelli più complessi, se opportunamente bilanciati, sono in grado di catturare relazioni non lineari tra le features e migliorare la capacità predittiva rispetto ai modelli lineari.
+
+Il contributo principale del progetto consiste nella costruzione di un dataset unificato a partire da fonti eterogenee e nella valutazione sistematica dell'impatto dello sbilanciamento delle classi sulle prestazioni dei modelli di classificazione.
+
+Inoltre, il lavoro evidenzia come metriche di recall ed F1-score siano fondamentali in contesti reali in cui la classe di interesse è minoritaria, mostrando i limiti dell'accuracy come unica misura di valutazione.
+
+Dal punto di vista applicativo, il progetto dimostra come tecniche di Machine Learning possano essere utilizzate per analizzare eventi storici complessi, trasformando informazioni qualitative in modelli quantitativi interpretabili.
+
+Tra le possibili estensioni del lavoro si individuano diverse direzioni. In primo luogo, sarebbe possibile arricchire il dataset con nuove feature, ad esempio introducendo informazioni temporali o contestuali. Inoltre, si potrebbero adottare tecniche di feature engineering più avanzate al fine di migliorare la rappresentazione dei dati.
+
+Dal punto di vista modellistico, risulterebbe interessante sperimentare architetture più complesse, come metodi ensemble, e ottimizzare gli iperparametri mediante tecniche di ricerca automatica. Un ulteriore miglioramento potrebbe derivare dall'utilizzo di tecniche di bilanciamento dei dati, come oversampling o undersampling.
+
+Infine, l'analisi potrebbe essere estesa includendo ulteriori disastri navali o dataset simili, al fine di valutare la capacità di generalizzazione dei modelli su scenari differenti.
+
+## Appendici
+In questa sezione sono riportati materiali aggiuntivi a supporto delle analisi presentate nel corpo principale della relazione.
+
+In particolare sono inclusi un'immagine che riporta la corrispondenza tra i colori e i modelli su TensorBoard e i grafici completi dell'andamento dell'accuracy in training e test di tutti i modelli addestrati.
+
+<table align="center">
+    <tr>
+        <td align="center">
+            <img src="../media/all_runs_colors.png" width="66%"><br>
+            <i>Figura x: Corrispondenza tra i colori e i modelli nei grafici su TensorBoard</i>
+        </td>
+        <td align="center">
+            <img src="../media/accuracy_train_all.png" width="66%"><br>
+            <i>Figura x: Grafico dell'andamento dell'accuracy in training di tutti i modelli</i>
+        </td>
+        <td align="center">
+            <img src="../media/accuracy_test_all.png" width="66%"><br>
+            <i>Figura x: Grafico dell'andamento dell'accuracy in test di tutti i modelli</i>
+        </td>
+    </tr>
+</table>
+
+## Riferimenti
+### Dataset e risorse online
+- RMS Titanic Dataset, Kaggle: https://www.kaggle.com/datasets/abdelrahmansaad10/titanic
+- MS Estonia Dataset, Kaggle: https://www.kaggle.com/datasets/christianlillelund/passenger-list-for-the-estonia-ferry-disaster
+- RMS Lusitania Dataset, Kaggle: https://www.kaggle.com/datasets/rkkaggle2/rms-lusitania-complete-passenger-manifest
+
+### Strumenti e librerie utilizzati
+- Python: https://www.python.org/
+- PyTorch: https://pytorch.org
+- Scikit-learn: https://scikit-learn.org
+- Pandas: https://pandas.pydata.org
+- NumPy: https://numpy.org
+- TensorBoard: https://www.tensorflow.org/tensorboard
