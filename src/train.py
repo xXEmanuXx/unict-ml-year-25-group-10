@@ -2,7 +2,6 @@ import torch
 from torch import nn
 from torch.optim import SGD
 import os
-
 from sklearn.metrics import accuracy_score
 
 def train_model(model, train_loader, test_loader, device, save_path, lr=0.05, epochs=300):

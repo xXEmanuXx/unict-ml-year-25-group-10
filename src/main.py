@@ -7,6 +7,7 @@ from train import train_model
 from gui import run_app
 
 MODEL_PATH = "../results/deep_mlp.pt"
+DATASET_PATH = "../data/all_ships.csv"
 
 def main():
     # Per riproducibilità
@@ -14,7 +15,7 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    X_train, X_test, Y_train, Y_test = load_data("../data/all_ships.csv")
+    X_train, X_test, Y_train, Y_test = load_data(DATASET_PATH)
     X_train, X_test, mean, std = normalize(X_train, X_test)
     train_loader, test_loader = create_dataloaders(X_train, Y_train, X_test, Y_test)
 

@@ -1,4 +1,3 @@
-import torch
 import pandas as pd
 from tkinter import messagebox, filedialog
 import random
