@@ -502,6 +502,8 @@ La funzione di predizione utilizza il modello addestrato per stimare la probabil
 
 Le immagini riportate in **Figura 8** e nelle relative sottofigure consentono di evidenziare il funzionamento complessivo della demo e l'integrazione tra modello e interfaccia grafica, mostrando chiaramente il flusso operativo: caricamento dei dati, selezione dell'input e generazione della predizione.
 
+E' inoltre disponibile un video dimostrativo che documenta l'intero funzionamento e flusso operativo dell'applicazione consultabile nel file `media/video_demo.mp4`.
+
 ## Conclusioni
 In questo lavoro sono stati sviluppati e confrontati diversi modelli di classificazione per la predizione della sopravvivenza dei passeggeri nei disastri navali storici, utilizzando un dataset integrato costruito a partire da tre dataset distinti.
 
