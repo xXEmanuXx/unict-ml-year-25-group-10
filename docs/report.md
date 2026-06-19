@@ -537,15 +537,15 @@ In particolare sono inclusi un'immagine che riporta la corrispondenza tra i colo
     <tr>
         <td align="center">
             <img src="../media/all_runs_colors.png" width="66%"><br>
-            <i>Figura x: Corrispondenza tra i colori e i modelli nei grafici su TensorBoard</i>
+            <i>Figura 9: Corrispondenza tra i colori e i modelli nei grafici su TensorBoard</i>
         </td>
         <td align="center">
             <img src="../media/accuracy_train_all.png" width="66%"><br>
-            <i>Figura x: Grafico dell'andamento dell'accuracy in training di tutti i modelli</i>
+            <i>Figura 10: Grafico dell'andamento dell'accuracy in training di tutti i modelli</i>
         </td>
         <td align="center">
             <img src="../media/accuracy_test_all.png" width="66%"><br>
-            <i>Figura x: Grafico dell'andamento dell'accuracy in test di tutti i modelli</i>
+            <i>Figura 11: Grafico dell'andamento dell'accuracy in test di tutti i modelli</i>
         </td>
     </tr>
 </table>
